@@ -23,16 +23,16 @@ def train(config_path: str):
     
     # Initialize Datasets and Dataloaders
     train_dataset = GlacierDataset(
-        image_dir=os.path.join(config['data']['processed_dir'], 'train/images'),
-        mask_dir=os.path.join(config['data']['processed_dir'], 'train/masks'),
+        image_dir=config['data']['train_image_dir'],
+        mask_dir=config['data']['train_mask_dir'],
         config=config,
         transform=get_train_transforms(),
         is_train=True
     )
     
     val_dataset = GlacierDataset(
-        image_dir=os.path.join(config['data']['processed_dir'], 'val/images'),
-        mask_dir=os.path.join(config['data']['processed_dir'], 'val/masks'),
+        image_dir=config['data']['val_image_dir'],
+        mask_dir=config['data']['val_mask_dir'],
         config=config,
         transform=get_val_transforms(),
         is_train=False

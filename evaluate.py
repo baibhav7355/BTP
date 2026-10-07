@@ -18,8 +18,8 @@ def evaluate(config_path: str, checkpoint_path: str):
     print(f"Evaluating on device: {device}")
     
     test_dataset = GlacierDataset(
-        image_dir=os.path.join(config['data']['processed_dir'], 'test/images'),
-        mask_dir=os.path.join(config['data']['processed_dir'], 'test/masks'),
+        image_dir=config['data']['val_image_dir'],
+        mask_dir=config['data']['val_mask_dir'],
         config=config,
         transform=get_val_transforms(),
         is_train=False

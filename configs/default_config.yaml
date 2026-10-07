@@ -1,8 +1,9 @@
 # Data Configuration
 data:
-  raw_image_dir: "data/raw/images"
-  raw_mask_dir: "data/raw/masks"
-  processed_dir: "data/processed/tiles"
+  train_image_dir: "../GLID/images"
+  train_mask_dir: "../GLID/labels"
+  val_image_dir: "../Val/val/images"
+  val_mask_dir: "../Val/val/labels"
   
   # Sentinel-2 typical bands (10m & 20m resampled)
   # B2(Blue), B3(Green), B4(Red), B8(NIR), B11(SWIR1), B12(SWIR2)
@@ -20,7 +21,7 @@ data:
     nir_idx: 3
     swir1_idx: 4
   
-  compute_ndwi: true
+  compute_ndwi: false
   
   tile_size: 512
   overlap: 128     # Pixels to overlap when tiling
@@ -28,7 +29,7 @@ data:
   
 # Training Configuration
 training:
-  batch_size: 16
+  batch_size: 4
   num_workers: 4
   max_epochs: 100
   learning_rate: 1.0e-4
@@ -41,6 +42,6 @@ model:
   architecture: "Unet"       # Unet, UnetPlusPlus, DeepLabV3Plus
   encoder_name: "resnet34"   # resnet34, resnet50, efficientnet-b0
   encoder_weights: "imagenet"
-  in_channels: 7             # 6 spectral bands + 1 NDWI
+  in_channels: 3             # 3-channel RGB PNG images
   classes: 1                 # Binary segmentation (glacier lake/ice vs background)
   loss: "DiceFocalLoss"      # Hybrid loss for class imbalance

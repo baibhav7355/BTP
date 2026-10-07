@@ -44,7 +44,7 @@ class GlacierDataset(Dataset):
         # Grab only valid files
         self.image_paths = sorted([
             f for f in self.image_dir.iterdir() 
-            if f.is_file() and f.suffix.lower() in ['.tif', '.tiff']
+            if f.is_file() and f.suffix.lower() in ['.tif', '.tiff', '.png']
         ])
         
         if not self.image_paths:
@@ -70,10 +70,13 @@ class GlacierDataset(Dataset):
         image = append_indices(image, data_config)
         
         # 3. Normalize to [0, 1] range. 
-        # Sentinel-2/Landsat Surface Reflectance L2A products are typically scaled by 10000.
-        # Ensure floating point scaling.
-        image = image.astype(np.float32) / 10000.0
-        # Clip max bounds (in case of very bright clouds/snow reflecting > 1.0)
+        # If it's standard 8-bit PNG, divide by 255.
+        if image.dtype == np.uint8 or image.max() > 1.0:
+            image = image.astype(np.float32) / 255.0
+        else:
+            # Sentinel-2/Landsat Surface Reflectance L2A products are typically scaled by 10000.
+            image = image.astype(np.float32) / 10000.0
+        # Clip max bounds
         image = np.clip(image, 0.0, 1.0)
         
         # 4. Read Mask (1, H, W)
@@ -85,6 +88,11 @@ class GlacierDataset(Dataset):
             mask = np.zeros((image.shape[1], image.shape[2]), dtype=np.uint8)
             
         mask = mask.astype(np.float32)
+        # Ensure mask is strictly 0 and 1 (binary cross entropy fails with NaNs if max is 255)
+        if mask.max() > 1.0:
+            mask = mask / 255.0
+        # Binarize just in case there are intermediate values due to resizing
+        mask = (mask > 0.5).astype(np.float32)
         
         # 5. Apply Albumentations Transforms
         if self.transform:

@@ -75,7 +75,10 @@ def predict_scene(config_path: str, checkpoint_path: str, input_raster: str, out
                 
             # Pre-processing pipeline (Indices + Normalization)
             image_patch = append_indices(image_patch, config.get("data", {}))
-            image_patch = image_patch.astype(np.float32) / 10000.0
+            if image_patch.dtype == np.uint8 or image_patch.max() > 1.0:
+                image_patch = image_patch.astype(np.float32) / 255.0
+            else:
+                image_patch = image_patch.astype(np.float32) / 10000.0
             image_patch = np.clip(image_patch, 0.0, 1.0)
             
             # Predict (1, C, H, W)
