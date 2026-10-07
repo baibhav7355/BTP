@@ -68,7 +68,8 @@ def train(config_path: str):
     writer = SummaryWriter(log_dir='runs/glacier_seg')
     
     best_iou = 0.0
-    os.makedirs('checkpoints', exist_ok=True)
+    checkpoint_dir = config.get('training', {}).get('checkpoint_dir', 'checkpoints')
+    os.makedirs(checkpoint_dir, exist_ok=True)
     
     max_epochs = config['training']['max_epochs']
     
@@ -124,8 +125,9 @@ def train(config_path: str):
         # Checkpoint Saving
         if val_metrics['iou'] > best_iou:
             best_iou = val_metrics['iou']
-            torch.save(model.state_dict(), 'checkpoints/best_model.pth')
-            print(f"--> Saved new best model (IoU: {best_iou:.4f})")
+            save_path = os.path.join(checkpoint_dir, 'best_model.pth')
+            torch.save(model.state_dict(), save_path)
+            print(f"--> Saved new best model (IoU: {best_iou:.4f}) to {save_path}")
             
     writer.close()
 
