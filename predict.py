@@ -34,7 +34,8 @@ def predict_scene(config_path: str, checkpoint_path: str, input_raster: str, out
     
     out_dir = Path(output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    out_raster_path = out_dir / f"pred_{Path(input_raster).name}"
+    base_name = Path(input_raster).stem
+    out_raster_path = out_dir / f"pred_{base_name}.tif"
     
     # Pre-compute gaussian window for blend weight
     gaussian_weights = get_gaussian_window(tile_size, sigma=0.5)
@@ -100,6 +101,7 @@ def predict_scene(config_path: str, checkpoint_path: str, input_raster: str, out
     
     # Save probabilistic raster
     meta.update({
+        "driver": "GTiff",
         "count": 1,
         "dtype": "float32",
         "compress": "lzw"
