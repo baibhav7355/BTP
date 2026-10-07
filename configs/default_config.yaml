@@ -1,0 +1,46 @@
+# Data Configuration
+data:
+  raw_image_dir: "data/raw/images"
+  raw_mask_dir: "data/raw/masks"
+  processed_dir: "data/processed/tiles"
+  
+  # Sentinel-2 typical bands (10m & 20m resampled)
+  # B2(Blue), B3(Green), B4(Red), B8(NIR), B11(SWIR1), B12(SWIR2)
+  bands:
+    - B2
+    - B3
+    - B4
+    - B8
+    - B11
+    - B12
+  
+  # Band indices for calculations (0-indexed based on above list)
+  indices:
+    green_idx: 1
+    nir_idx: 3
+    swir1_idx: 4
+  
+  compute_ndwi: true
+  
+  tile_size: 512
+  overlap: 128     # Pixels to overlap when tiling
+  nodata_value: 0
+  
+# Training Configuration
+training:
+  batch_size: 16
+  num_workers: 4
+  max_epochs: 100
+  learning_rate: 1.0e-4
+  weight_decay: 1.0e-5
+  accelerator: "gpu"
+  devices: 1
+  
+# Model Configuration
+model:
+  architecture: "Unet"       # Unet, UnetPlusPlus, DeepLabV3Plus
+  encoder_name: "resnet34"   # resnet34, resnet50, efficientnet-b0
+  encoder_weights: "imagenet"
+  in_channels: 7             # 6 spectral bands + 1 NDWI
+  classes: 1                 # Binary segmentation (glacier lake/ice vs background)
+  loss: "DiceFocalLoss"      # Hybrid loss for class imbalance

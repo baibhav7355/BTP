@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Data & Output (Do not commit massive GeoTIFFs or Model Weights to GitHub!)
+/data/
+/GLID/
+/Val/
+/predictions/
+/checkpoints/
+/runs/
+*.tif
+*.tiff
+*.geojson
+*.shp
+*.shx
+*.dbf
+*.prj
+
+# PyTorch
+*.pth
+*.pt
+
+# Virtual Environments
+venv/
+env/
+.env
+
+# OS / IDEs
+.DS_Store
+.idea/
+.vscode/
