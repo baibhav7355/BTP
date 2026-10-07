@@ -7,8 +7,10 @@ __pycache__/
 /data/
 /GLID/
 /Val/
-/predictions/
-/checkpoints/
+/predictions/*
+!/predictions/.gitkeep
+/checkpoints/*
+!/checkpoints/.gitkeep
 /runs/
 *.tif
 *.tiff

@@ -1,50 +1,82 @@
-# Glacial Lake Semantic Segmentation
+# Automated Glacial Lake & Ice Semantic Segmentation (B.Tech Project)
 
-A production-grade PyTorch-based multi-spectral semantic segmentation pipeline designed to automatically delineate glacial lake and ice boundaries using Sentinel-2 L2A / Landsat satellite imagery.
+A deep learning and geospatial remote sensing pipeline for high-resolution semantic segmentation and boundary vectorization of glacial lakes and ice bodies using satellite imagery (Sentinel-2 L2A / Landsat).
 
-## Core Features
+---
 
-- **Multi-Spectral Native**: Supports $N$-channel inputs (e.g., 6 bands) natively without artificially compressing reflectance data into 3-channel RGB imagery.
-- **Dynamic Indices**: On-the-fly, numerically stable computation of spectral indices like Normalized Difference Water Index (NDWI) and Snow Index (NDSI).
-- **Extreme Class Imbalance Handling**: Utilizes a highly robust hybrid `DiceFocalLoss` specifically tuned to heavily penalize false-negatives on sparse target segmentations.
-- **Georeferenced Inference**: Full-scene sliding window inference utilizing a 2D Gaussian memory-buffer to eliminate edge artifacts. Binarized outputs are automatically converted into georeferenced GeoJSON/Shapefiles via `geopandas`.
+## 📁 Repository & Project Architecture
 
-## Installation
+```text
+B.Tech Project/
+├── GLID/                          # Raw satellite image scenes & ground truth
+├── val/                           # Raw validation scenes
+└── glacier_seg/                   # Main Deep Learning & Geospatial Codebase
+    ├── configs/
+    │   └── default_config.yaml    # Hyperparameters, spectral bands, and dataset paths
+    ├── src/                       # Modular source code
+    │   ├── data/
+    │   │   ├── dataset.py         # Multi-spectral PyTorch Dataset & normalization
+    │   │   ├── indices.py         # On-the-fly NDWI / NDSI index calculation
+    │   │   ├── tiler.py           # Large-scale satellite imagery tiler
+    │   │   └── transforms.py      # Spatial & radiometric augmentations
+    │   ├── models/
+    │   │   ├── unet.py            # U-Net architecture with pretrained backbones
+    │   │   └── losses.py          # DiceFocalLoss for severe class imbalance
+    │   └── utils/
+    │       ├── geo_utils.py       # Raster-to-vector polygon polygonization
+    │       └── metrics.py         # IoU, F1 (Dice), Precision, Recall metrics
+    ├── checkpoints/               # Trained model weights (e.g., best_model.pth)
+    ├── predictions/               # Output GeoTIFF rasters & GeoJSON polygons
+    ├── train.py                   # Model training and validation loop
+    ├── evaluate.py                # Quantitative metrics evaluation on test/val set
+    ├── predict.py                 # Full-scene sliding-window inference & vectorization
+    ├── prepare_local_data.py      # Utility for dataset splitting
+    ├── requirements.txt           # Python package dependencies
+    └── README.md                  # Project documentation
+```
 
-We highly recommend using a fresh virtual environment.
+---
+
+## ⚡ Core Features
+
+- **Multi-Spectral Native**: Accommodates multi-spectral band stacks (B2, B3, B4, B8, B11, B12) and standard RGB imagery.
+- **Dynamic Spectral Indices**: Calculates indices like NDWI (Normalized Difference Water Index) and NDSI on the fly.
+- **Extreme Class Imbalance Handling**: Optimized using a hybrid `DiceFocalLoss` to accurately detect sparse glacial features against rocky/snowy mountainous terrain.
+- **Artifact-Free Inference**: Sliding-window inference with 2D Gaussian apodization to eliminate boundary stitching seams.
+- **Automated GIS Vectorization**: Converts continuous raster probability predictions directly into georeferenced GeoJSON / Shapefile polygons for GIS tools (QGIS, ArcGIS).
+
+---
+
+## 🚀 Execution & Usage
+
+### 1. Installation
 ```bash
 pip install -r requirements.txt
 ```
 
-## Pipeline Execution
-
-### 1. Data Preparation (Tiling)
-Extract overlapping 512x512 patches from massive raw scenes into a dataset directory:
-```python
-from src.data.tiler import GeoTiler
-
-tiler = GeoTiler(output_dir="data/processed/tiles", tile_size=512, overlap=128)
-tiler.process_scene("raw/scene_1.tif", "raw/mask_1.tif", "scene_1")
-```
-
-### 2. Training
-Adjust your bands, paths, and hyperparameters in `configs/default_config.yaml`, then execute the training loop:
+### 2. Model Training
 ```bash
 python train.py --config configs/default_config.yaml
 ```
-Monitor real-time training metrics (IoU, F1) via TensorBoard:
+
+### 3. Quantitative Model Evaluation
+Evaluates the model on holdout images and computes **IoU, F1-Score, Precision, and Recall**:
 ```bash
-tensorboard --logdir runs/glacier_seg
+python evaluate.py \
+    --config configs/default_config.yaml \
+    --checkpoint checkpoints/best_model.pth \
+    --output predictions/evaluation_report.txt
 ```
 
-### 3. Evaluation
-Evaluate the optimal checkpoint against hold-out test tiles:
+### 4. Scene Inference & Vectorization
+Run prediction on any new satellite image:
 ```bash
-python evaluate.py --checkpoint checkpoints/best_model.pth
+python predict.py \
+    --checkpoint checkpoints/best_model.pth \
+    --input /path/to/satellite_scene.png \
+    --output_dir predictions/
 ```
+Outputs:
+- `pred_<name>.tif`: Predicted continuous confidence raster.
+- `pred_<name>.geojson`: Vectorized boundary polygons ready for GIS mapping.
 
-### 4. Full Scene Inference & Vectorization
-Run the model over an entire unseen satellite scene (gigapixel scale). The script automatically outputs a stitched probabilistic GeoTIFF and a topologically correct `.geojson` vector polygon map.
-```bash
-python predict.py --checkpoint checkpoints/best_model.pth --input data/raw_unseen_scene.tif --output_dir predictions/
-```
