@@ -1,11 +1,18 @@
 import argparse
+import warnings
 import yaml
 from pathlib import Path
 import numpy as np
 import rasterio
 from rasterio.windows import Window
+from rasterio.errors import NotGeoreferencedWarning
 import torch
 from tqdm import tqdm
+
+# Suppress benign non-georeferenced warnings for PNG inputs
+warnings.filterwarnings('ignore', category=NotGeoreferencedWarning)
+warnings.filterwarnings('ignore', message=".*crs.*")
+warnings.filterwarnings('ignore', message=".*geotransform.*")
 
 from src.data.indices import append_indices
 from src.models.unet import build_model

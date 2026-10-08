@@ -1,10 +1,17 @@
 import os
+import warnings
 import argparse
 import glob
 import numpy as np
 import rasterio
+from rasterio.errors import NotGeoreferencedWarning
 from PIL import Image
 import matplotlib.pyplot as plt
+
+# Clean console output
+warnings.filterwarnings('ignore', category=NotGeoreferencedWarning)
+warnings.filterwarnings('ignore', message=".*crs.*")
+warnings.filterwarnings('ignore', message=".*geotransform.*")
 
 from predict import predict_scene
 
