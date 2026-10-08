@@ -6,14 +6,15 @@ import rasterio
 from PIL import Image
 import matplotlib.pyplot as plt
 
-from predict import run_inference
+from predict import predict_scene
 
 def predict_and_visualize(
     image_identifier: str,
     checkpoint: str = "checkpoints/best_model.pth",
     config_path: str = "configs/default_config.yaml",
     output_dir: str = "predictions",
-    val_root: str = "../val"
+    val_root: str = "../val",
+    show: bool = False
 ):
     os.makedirs(output_dir, exist_ok=True)
     
@@ -41,12 +42,11 @@ def predict_and_visualize(
     print(f"=== Predicting on Image: {img_path} ===")
     
     # 2. Run Sliding Window Model Inference
-    run_inference(
+    predict_scene(
         config_path=config_path,
         checkpoint_path=checkpoint,
         input_raster=img_path,
-        output_dir=output_dir,
-        threshold=0.5
+        output_dir=output_dir
     )
     
     # Output file paths
@@ -101,7 +101,10 @@ def predict_and_visualize(
     print(f"[Done] Saved Raster: {pred_raster_path}")
     print(f"[Done] Saved Vector: {pred_geojson_path}")
     
-    plt.show()
+    if show:
+        plt.show()
+    else:
+        plt.close()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Predict and plot glacier segmentation locally")
@@ -109,6 +112,7 @@ if __name__ == "__main__":
     parser.add_argument('--checkpoint', type=str, default="checkpoints/best_model.pth", help="Path to checkpoint")
     parser.add_argument('--config', type=str, default="configs/default_config.yaml", help="Path to config")
     parser.add_argument('--output_dir', type=str, default="predictions", help="Directory to save predictions")
+    parser.add_argument('--show', action='store_true', default=False, help="Display popup interactive window")
     args = parser.parse_args()
     
-    predict_and_visualize(args.image, args.checkpoint, args.config, args.output_dir)
+    predict_and_visualize(args.image, args.checkpoint, args.config, args.output_dir, show=args.show)
